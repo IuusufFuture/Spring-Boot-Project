@@ -4,11 +4,13 @@ import com.example.finalporject.dao.UserRepo;
 import com.example.finalporject.mappers.UserMapper;
 import com.example.finalporject.models.dto.CodeDto;
 import com.example.finalporject.models.entities.Code;
+import com.example.finalporject.models.entities.Request;
 import com.example.finalporject.models.entities.User;
 import com.example.finalporject.models.enums.CodeStatus;
 import com.example.finalporject.models.responses.ErrorResponse;
 import com.example.finalporject.models.responses.OkRepsonse;
 import com.example.finalporject.services.CodeService;
+import com.example.finalporject.services.RequestService;
 import com.example.finalporject.services.SendEmailService;
 import com.example.finalporject.services.UserService;
 import io.jsonwebtoken.Jwts;
@@ -21,6 +23,8 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Formatter;
 import java.util.Objects;
 
 @Service
@@ -28,9 +32,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepo userRepo;
     @Autowired
+    private SendEmailService sendEmailService;
+    @Autowired
     private CodeService codeService;
     @Autowired
-    private SendEmailService sendEmailService;
+    private RequestService requestService;
+    private Formatter formatter;
 
     @Override
     public ResponseEntity<?> sendCode(String login) {
@@ -72,14 +79,44 @@ public class UserServiceImpl implements UserService {
             return new ResponseEntity<>(new ErrorResponse("No login found in the database"), HttpStatus.NOT_FOUND);
         }
 
-        Code userCode = codeService.getByCode(loginFound);
+        // It already gets hashed in 'sendCode' method
+        Code lastHashedCode = codeService.getByCode(loginFound);
 
-        // It takes input (param) and hashes
-        String hashedCode = BCrypt.hashpw(code, BCrypt.gensalt());
+        if(Objects.isNull(lastHashedCode)) {
+            return new ResponseEntity<>(new ErrorResponse("Please create a NEW verification code."), HttpStatus.NOT_FOUND);
+        }
 
-        // Then we take hashedCode that person entered and compare it to DataBase code
-        if(!BCrypt.checkpw(userCode.getCode(), hashedCode)) {
-            return new ResponseEntity<>(new ErrorResponse("Did not pass verification. Wrong code input"), HttpStatus.CONFLICT);
+        Request request = new Request();
+        if(!BCrypt.checkpw(code, lastHashedCode.getCode())) {
+            formatter = new Formatter();
+            int maxInputs = 4;
+            request.setAddDate(new Date());
+            request.setSuccess(false);
+            request.setCodeId(lastHashedCode);
+            requestService.saveRequest(request);
+
+            // Count how many times code was entered
+            int countInputs = requestService.countByCodeId(request.getCodeId());
+
+            // Block user for an hour
+            if(countInputs >= maxInputs) {
+                Calendar blockedTime = Calendar.getInstance();
+                blockedTime.add(Calendar.HOUR, 1);
+                loginFound.setBlockDate(blockedTime.getTime());
+                userRepo.save(loginFound);
+                if(Objects.isNull(loginFound.getBlockDate())) {
+                    return new ResponseEntity<>(new ErrorResponse("Blocked Date is null"), HttpStatus.CONFLICT);
+                }
+                formatter.format("%tl:%tM", loginFound.getBlockDate().getTime(), loginFound.getBlockDate().getTime());
+                return new ResponseEntity<>(new ErrorResponse("You have tried 3 times and have been blocked for an hour. Please, try again later at " + formatter), HttpStatus.CONFLICT);
+            }
+            return new ResponseEntity<>(new ErrorResponse("Did not pass verification. Wrong code input."), HttpStatus.NOT_FOUND);
+        }
+
+        if(lastHashedCode.getEndDate().before(new Date())) {
+            lastHashedCode.setCodeStatus(CodeStatus.CANCELLED);
+            codeService.saveCode(lastHashedCode);
+            return new ResponseEntity<>(new ErrorResponse("The code has gotten cancelled, 3 minutes passed. Please try to create a new verification code."), HttpStatus.CONFLICT);
         }
 
         Calendar tokenLifeSpan = Calendar.getInstance();
@@ -93,10 +130,8 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.ok(token);
 
         /*
-        if 3 min passes
-            -> code gets CANCELLED 'CodeStatus' inside of Code.class
-            -> return: time has passed, please try to create a new verification
         if 3 wrong inputs
+            -> let user enter code again when 1 hour finished
             -> save each input's date when it was entered
             -> code gets FAILED 'CodeStatus.class'
             -> return: didn't pass verification
