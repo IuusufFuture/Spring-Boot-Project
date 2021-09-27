@@ -8,6 +8,6 @@ import org.springframework.http.ResponseEntity;
 
 public interface CodeService {
     int codeRandom();
-    void saveCode(Code code);
+    CodeDto saveCode(CodeDto code);
     Code getByCode(User login);
 }

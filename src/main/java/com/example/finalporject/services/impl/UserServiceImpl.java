@@ -1,21 +1,19 @@
 package com.example.finalporject.services.impl;
 
 import com.example.finalporject.dao.UserRepo;
+import com.example.finalporject.mappers.CodeMapper;
 import com.example.finalporject.mappers.UserMapper;
-import com.example.finalporject.models.dto.CodeDto;
 import com.example.finalporject.models.entities.Code;
 import com.example.finalporject.models.entities.Request;
 import com.example.finalporject.models.entities.User;
 import com.example.finalporject.models.enums.CodeStatus;
 import com.example.finalporject.models.responses.ErrorResponse;
-import com.example.finalporject.models.responses.OkRepsonse;
 import com.example.finalporject.services.CodeService;
 import com.example.finalporject.services.RequestService;
 import com.example.finalporject.services.SendEmailService;
 import com.example.finalporject.services.UserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,15 +27,18 @@ import java.util.Objects;
 
 @Service
 public class UserServiceImpl implements UserService {
-    @Autowired
     private UserRepo userRepo;
-    @Autowired
     private SendEmailService sendEmailService;
-    @Autowired
     private CodeService codeService;
-    @Autowired
     private RequestService requestService;
     private Formatter formatter;
+
+    public UserServiceImpl(UserRepo userRepo, SendEmailService sendEmailService, CodeService codeService, RequestService requestService) {
+        this.userRepo = userRepo;
+        this.sendEmailService = sendEmailService;
+        this.codeService = codeService;
+        this.requestService = requestService;
+    }
 
     @Override
     public ResponseEntity<?> sendCode(String login) {
@@ -54,7 +55,7 @@ public class UserServiceImpl implements UserService {
         Code lastCode = codeService.getByCode(userFoundLogin);
         if(Objects.nonNull(lastCode)) {
             lastCode.setCodeStatus(CodeStatus.CANCELLED);
-            codeService.saveCode(lastCode);
+            codeService.saveCode(CodeMapper.INSTANCE.toCodeDto(lastCode));
         }
 
         Code actualCode = new Code();
@@ -62,7 +63,7 @@ public class UserServiceImpl implements UserService {
         actualCode.setCodeStatus(CodeStatus.NEW);
         actualCode.setEndDate(endDate.getTime());
         actualCode.setUserId(userFoundLogin);
-        codeService.saveCode(actualCode);
+        codeService.saveCode(CodeMapper.INSTANCE.toCodeDto(actualCode));
 
         sendEmailService.sendSimpleMessage(userFoundLogin.getEmail(), "Code verification" ,Integer.toString(randomCode));
 
@@ -85,7 +86,8 @@ public class UserServiceImpl implements UserService {
             return new ResponseEntity<>(new ErrorResponse("Please create a NEW verification code."), HttpStatus.NOT_FOUND);
         }
 
-        if(loginFound.getBlockDate().before(new Date()) || Objects.isNull(loginFound.getBlockDate())) {
+        System.out.println(loginFound.getBlockDate().before(new Date()));
+        if(loginFound.getBlockDate().before(new Date()) || Objects.isNull(loginFound.getBlockDate() )) {
             Request request = new Request();
             if(!BCrypt.checkpw(code, lastHashedCode.getCode())) {
                 formatter = new Formatter();
@@ -104,7 +106,7 @@ public class UserServiceImpl implements UserService {
                     blockedTime.add(Calendar.HOUR, 1);
                     loginFound.setBlockDate(blockedTime.getTime());
                     lastHashedCode.setCodeStatus(CodeStatus.FAILED);
-                    codeService.saveCode(lastHashedCode);
+                    codeService.saveCode(CodeMapper.INSTANCE.toCodeDto(lastHashedCode));
 
                     if(Objects.isNull(loginFound.getBlockDate())) {
                         return new ResponseEntity<>(new ErrorResponse("Blocked Date is null"), HttpStatus.CONFLICT);
@@ -120,7 +122,7 @@ public class UserServiceImpl implements UserService {
 
             if(lastHashedCode.getEndDate().before(new Date())) {
                 lastHashedCode.setCodeStatus(CodeStatus.CANCELLED);
-                codeService.saveCode(lastHashedCode);
+                codeService.saveCode(CodeMapper.INSTANCE.toCodeDto(lastHashedCode));
                 return new ResponseEntity<>(new ErrorResponse("The code has gotten cancelled, 3 minutes passed. Please try to create a new verification code."), HttpStatus.CONFLICT);
             }
 
@@ -139,7 +141,7 @@ public class UserServiceImpl implements UserService {
             requestService.saveRequest(request);
             // He can use this code only ONCE! If he tries to use the same code twice or more, it won't work
             lastHashedCode.setCodeStatus(CodeStatus.APPROVED);
-            codeService.saveCode(lastHashedCode);
+            codeService.saveCode(CodeMapper.INSTANCE.toCodeDto(lastHashedCode));
             return ResponseEntity.ok(token);
         } else {
             return new ResponseEntity<>(new ErrorResponse("You have been blocked for 1 hour. "), HttpStatus.CONFLICT);

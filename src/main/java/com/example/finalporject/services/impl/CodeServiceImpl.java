@@ -27,8 +27,12 @@ public class CodeServiceImpl implements CodeService {
     }
 
     @Override
-    public void saveCode(Code codeParam) {
-        codeRepo.save(codeParam);
+    public CodeDto saveCode(CodeDto codeParam) {
+        Code code = CodeMapper.INSTANCE.toCode(codeParam);
+        if(!codeRepo.existsById(code.getId())) {
+            code = codeRepo.save(code);
+        }
+        return CodeMapper.INSTANCE.toCodeDto(code);
     }
 
     @Override
