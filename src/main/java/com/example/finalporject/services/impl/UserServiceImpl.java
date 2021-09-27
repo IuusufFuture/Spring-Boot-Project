@@ -81,65 +81,68 @@ public class UserServiceImpl implements UserService {
 
         // It already gets hashed in 'sendCode' method
         Code lastHashedCode = codeService.getByCode(loginFound);
-
         if(Objects.isNull(lastHashedCode)) {
             return new ResponseEntity<>(new ErrorResponse("Please create a NEW verification code."), HttpStatus.NOT_FOUND);
         }
 
-        Request request = new Request();
-        if(!BCrypt.checkpw(code, lastHashedCode.getCode())) {
-            formatter = new Formatter();
-            int maxInputs = 4;
+        if(loginFound.getBlockDate().before(new Date()) || Objects.isNull(loginFound.getBlockDate())) {
+            Request request = new Request();
+            if(!BCrypt.checkpw(code, lastHashedCode.getCode())) {
+                formatter = new Formatter();
+                int maxInputs = 4;
+                request.setAddDate(new Date());
+                request.setSuccess(false);
+                request.setCodeId(lastHashedCode);
+                requestService.saveRequest(request);
+
+                // Count how many times code was entered
+                int countInputs = requestService.countByCodeId(request.getCodeId());
+
+                // Block user for an hour
+                if(countInputs == maxInputs) {
+                    Calendar blockedTime = Calendar.getInstance();
+                    blockedTime.add(Calendar.HOUR, 1);
+                    loginFound.setBlockDate(blockedTime.getTime());
+                    lastHashedCode.setCodeStatus(CodeStatus.FAILED);
+                    codeService.saveCode(lastHashedCode);
+
+                    if(Objects.isNull(loginFound.getBlockDate())) {
+                        return new ResponseEntity<>(new ErrorResponse("Blocked Date is null"), HttpStatus.CONFLICT);
+                    }
+                    formatter.format("%tl:%tM", loginFound.getBlockDate().getTime(), loginFound.getBlockDate().getTime());
+                    userRepo.save(loginFound);
+                    return new ResponseEntity<>(new ErrorResponse("You have tried 3 times and have been blocked for an hour. Please, try again later at " + formatter), HttpStatus.CONFLICT);
+                } else if(countInputs > maxInputs) {
+                    return new ResponseEntity<>(new ErrorResponse("You have been blocked, Please, try later."), HttpStatus.CONFLICT);
+                }
+                return new ResponseEntity<>(new ErrorResponse("Did not pass verification. Wrong code input."), HttpStatus.NOT_FOUND);
+            }
+
+            if(lastHashedCode.getEndDate().before(new Date())) {
+                lastHashedCode.setCodeStatus(CodeStatus.CANCELLED);
+                codeService.saveCode(lastHashedCode);
+                return new ResponseEntity<>(new ErrorResponse("The code has gotten cancelled, 3 minutes passed. Please try to create a new verification code."), HttpStatus.CONFLICT);
+            }
+
+            Calendar tokenLifeSpan = Calendar.getInstance();
+            tokenLifeSpan.add(Calendar.MINUTE, 5);
+
+            String token = Jwts.builder()
+                    .claim("login", login)
+                    .setExpiration(tokenLifeSpan.getTime())
+                    .signWith(SignatureAlgorithm.HS256, secretKey)
+                    .compact();
+
+            request.setSuccess(true);
             request.setAddDate(new Date());
-            request.setSuccess(false);
             request.setCodeId(lastHashedCode);
             requestService.saveRequest(request);
-
-            // Count how many times code was entered
-            int countInputs = requestService.countByCodeId(request.getCodeId());
-
-            // Block user for an hour
-            if(countInputs >= maxInputs) {
-                Calendar blockedTime = Calendar.getInstance();
-                blockedTime.add(Calendar.HOUR, 1);
-                loginFound.setBlockDate(blockedTime.getTime());
-                userRepo.save(loginFound);
-                if(Objects.isNull(loginFound.getBlockDate())) {
-                    return new ResponseEntity<>(new ErrorResponse("Blocked Date is null"), HttpStatus.CONFLICT);
-                }
-                formatter.format("%tl:%tM", loginFound.getBlockDate().getTime(), loginFound.getBlockDate().getTime());
-                return new ResponseEntity<>(new ErrorResponse("You have tried 3 times and have been blocked for an hour. Please, try again later at " + formatter), HttpStatus.CONFLICT);
-            }
-            return new ResponseEntity<>(new ErrorResponse("Did not pass verification. Wrong code input."), HttpStatus.NOT_FOUND);
-        }
-
-        if(lastHashedCode.getEndDate().before(new Date())) {
-            lastHashedCode.setCodeStatus(CodeStatus.CANCELLED);
+            // He can use this code only ONCE! If he tries to use the same code twice or more, it won't work
+            lastHashedCode.setCodeStatus(CodeStatus.APPROVED);
             codeService.saveCode(lastHashedCode);
-            return new ResponseEntity<>(new ErrorResponse("The code has gotten cancelled, 3 minutes passed. Please try to create a new verification code."), HttpStatus.CONFLICT);
+            return ResponseEntity.ok(token);
+        } else {
+            return new ResponseEntity<>(new ErrorResponse("You have been blocked for 1 hour. "), HttpStatus.CONFLICT);
         }
-
-        Calendar tokenLifeSpan = Calendar.getInstance();
-        tokenLifeSpan.add(Calendar.MINUTE, 5);
-
-        String token = Jwts.builder()
-                .claim("login", login)
-                .setExpiration(tokenLifeSpan.getTime())
-                .signWith(SignatureAlgorithm.HS256, secretKey)
-                .compact();
-        return ResponseEntity.ok(token);
-
-        /*
-        if 3 wrong inputs
-            -> let user enter code again when 1 hour finished
-            -> save each input's date when it was entered
-            -> code gets FAILED 'CodeStatus.class'
-            -> return: didn't pass verification
-        if true input
-            -> turn success parameter in Request.class to true if code == input
-            -> code gets APPROVED 'CodeStatus.class'
-            -< return:
-        */
-
     }
 }
