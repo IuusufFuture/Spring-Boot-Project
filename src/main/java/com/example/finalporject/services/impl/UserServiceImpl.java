@@ -3,6 +3,7 @@ package com.example.finalporject.services.impl;
 import com.example.finalporject.dao.UserRepo;
 import com.example.finalporject.mappers.CodeMapper;
 import com.example.finalporject.mappers.UserMapper;
+import com.example.finalporject.models.dto.UserDto;
 import com.example.finalporject.models.entities.Code;
 import com.example.finalporject.models.entities.Request;
 import com.example.finalporject.models.entities.User;
@@ -12,8 +13,7 @@ import com.example.finalporject.services.CodeService;
 import com.example.finalporject.services.RequestService;
 import com.example.finalporject.services.SendEmailService;
 import com.example.finalporject.services.UserService;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
 
         sendEmailService.sendSimpleMessage(userFoundLogin.getEmail(), "Code verification" ,Integer.toString(randomCode));
 
-        return ResponseEntity.ok(UserMapper.INSTANCE.toUserEmailDto(userFoundLogin));
+        return ResponseEntity.ok(UserMapper.INSTANCE.toUserDto(userFoundLogin));
     }
 
     @Value("${jwtSecret}")
@@ -146,5 +146,35 @@ public class UserServiceImpl implements UserService {
         } else {
             return new ResponseEntity<>(new ErrorResponse("You have been blocked for 1 hour. "), HttpStatus.CONFLICT);
         }
+    }
+
+    @Override
+    public ResponseEntity<?> verifyUser(String token) {
+        try {
+            Jws<Claims> jwt = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+            return ResponseEntity.ok(jwt.getBody().get("login") );
+        } catch (ExpiredJwtException expEx) {
+            return new ResponseEntity<>("JWT has gotten expired", HttpStatus.CONFLICT);
+        } catch (UnsupportedJwtException uns) {
+            return new ResponseEntity<>("Entered format/configuration does not match the format expected by the application", HttpStatus.CONFLICT);
+        } catch (MalformedJwtException expEx) {
+            return new ResponseEntity<>("JWT was not correctly constructed", HttpStatus.CONFLICT);
+        } catch (SignatureException expEx) {
+            return new ResponseEntity<>("Calculating a signature or verifying an existing signature of JWT failed", HttpStatus.CONFLICT);
+        } catch (Exception ex) {
+            return new ResponseEntity<>("Unauthorized", HttpStatus.CONFLICT);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> save(UserDto userDto) {
+        User user = UserMapper.INSTANCE.toUser(userDto);
+        if(Objects.isNull(userRepo.findByLogin(user.getLogin()))){
+            user = userRepo.save(user);
+        } else {
+            return new ResponseEntity<>(new ErrorResponse("User with that login already exists"), HttpStatus.CONFLICT);
+        }
+
+        return ResponseEntity.ok(UserMapper.INSTANCE.toUserDto(user));
     }
 }

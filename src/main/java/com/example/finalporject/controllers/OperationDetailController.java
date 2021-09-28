@@ -28,8 +28,4 @@ public class OperationDetailController {
     public ResponseEntity<?> updateOperDetail(@RequestParam OperationDetailDto operationDetailDto) {
         return operationDetailService.save(operationDetailDto);
     }
-
-//    @PutMapping("/delete")
-//    public ResponseEntity<?> deleteOperDetail() {
-//    }
 }

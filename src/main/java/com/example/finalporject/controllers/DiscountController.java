@@ -29,9 +29,4 @@ public class DiscountController {
     public ResponseEntity<?> updateDiscount(@RequestParam DiscountDto discountDto) {
         return discountService.saveDiscount(discountDto);
     }
-
-//    @PutMapping("/delete")
-//    public ResponseEntity<?> deleteDiscount(@RequestParam Long id, @RequestParam boolean active) {
-//        return discountService.deleteDiscount();
-//    }
 }

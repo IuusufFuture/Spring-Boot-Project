@@ -15,22 +15,27 @@ public class CategoryController {
     }
 
     @PostMapping("/saveCategory")
-    public ResponseEntity<?> saveCategory(@RequestParam CategoryDto categoryDto) {
-        return categoryService.saveCategory(categoryDto);
+    public ResponseEntity<?> saveCategory(@RequestHeader String token, @RequestParam CategoryDto categoryDto) {
+        return categoryService.saveCategory(token, categoryDto);
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<?> getAllCategory() {
-        return categoryService.getAll();
+    public ResponseEntity<?> getAllCategory(@RequestHeader String token) {
+        return categoryService.getAll(token);
+    }
+
+    @GetMapping("/getByName")
+    public ResponseEntity<?> getByName(@RequestHeader String token, @RequestParam String categoryName) {
+        return categoryService.getByName(token, categoryName);
     }
 
     @PutMapping("/updateCategory")
-    public ResponseEntity<?> updateCategory(@RequestParam CategoryDto categoryDto) {
-        return categoryService.saveCategory(categoryDto);
+    public ResponseEntity<?> updateCategory(@RequestHeader String token, @RequestParam CategoryDto categoryDto) {
+        return categoryService.saveCategory(token, categoryDto);
     }
 
     @PutMapping("/deleteCategory")
-    public ResponseEntity<?> deleteCategory(@RequestParam Long id, @RequestParam boolean active) {
-        return categoryService.delete(id, active);
+    public ResponseEntity<?> deleteCategory(@RequestHeader String token, @RequestParam Long id, @RequestParam boolean active) {
+        return categoryService.delete(token, id, active);
     }
 }

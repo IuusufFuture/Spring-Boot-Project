@@ -28,8 +28,4 @@ public class OperationController {
     public ResponseEntity<?> updateOperation(@RequestParam OperationDto operationDto) {
         return operService.save(operationDto);
     }
-
-//    @PutMapping("/delete")
-//    public ResponseEntity<?> {
-//    }
 }
