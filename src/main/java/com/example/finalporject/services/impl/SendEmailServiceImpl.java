@@ -9,8 +9,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class SendEmailServiceImpl implements SendEmailService {
 
-    @Autowired
     private JavaMailSender emailSender;
+
+    public SendEmailServiceImpl(JavaMailSender emailSender) {
+        this.emailSender = emailSender;
+    }
 
     public void sendSimpleMessage(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();

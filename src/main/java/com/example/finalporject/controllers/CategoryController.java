@@ -3,10 +3,7 @@ package com.example.finalporject.controllers;
 import com.example.finalporject.models.dto.CategoryDto;
 import com.example.finalporject.services.CategoryService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/category")
@@ -19,6 +16,21 @@ public class CategoryController {
 
     @PostMapping("/saveCategory")
     public ResponseEntity<?> saveCategory(@RequestParam CategoryDto categoryDto) {
-        return categoryService.createCategory(categoryDto);
+        return categoryService.saveCategory(categoryDto);
+    }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<?> getAllCategory() {
+        return categoryService.getAll();
+    }
+
+    @PutMapping("/updateCategory")
+    public ResponseEntity<?> updateCategory(@RequestParam CategoryDto categoryDto) {
+        return categoryService.saveCategory(categoryDto);
+    }
+
+    @PutMapping("/deleteCategory")
+    public ResponseEntity<?> deleteCategory(@RequestParam Long id, @RequestParam boolean active) {
+        return categoryService.delete(id, active);
     }
 }

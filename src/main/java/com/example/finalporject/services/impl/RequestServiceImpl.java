@@ -9,8 +9,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RequestServiceImpl implements RequestService {
-    @Autowired
     private RequestRepo requestRepo;
+
+    public RequestServiceImpl(RequestRepo requestRepo) {
+        this.requestRepo = requestRepo;
+    }
 
     @Override
     public void saveRequest(Request request) {
