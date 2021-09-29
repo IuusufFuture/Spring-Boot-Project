@@ -16,17 +16,17 @@ public class DiscountController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> createDiscount(@RequestParam DiscountDto discountDto) {
-        return discountService.saveDiscount(discountDto);
+    public ResponseEntity<?> createDiscount(@RequestHeader String token, @RequestParam DiscountDto discountDto) {
+        return discountService.saveDiscount(token, discountDto);
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<?> getAllDiscounts() {
-        return discountService.getAll();
+    public ResponseEntity<?> getAllDiscounts(@RequestHeader String token) {
+        return discountService.getAll(token);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updateDiscount(@RequestParam DiscountDto discountDto) {
-        return discountService.saveDiscount(discountDto);
+    public ResponseEntity<?> updateDiscount(@RequestHeader String token, @RequestParam DiscountDto discountDto) {
+        return discountService.saveDiscount(token, discountDto);
     }
 }

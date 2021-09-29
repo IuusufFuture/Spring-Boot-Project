@@ -1,14 +1,10 @@
 package com.example.finalporject.controllers;
 
-import com.example.finalporject.mappers.ProductMapper;
 import com.example.finalporject.models.dto.PriceDto;
-import com.example.finalporject.models.entities.Price;
 import com.example.finalporject.services.PriceService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/price")
@@ -21,17 +17,17 @@ public class PriceController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> createPrice(@RequestParam PriceDto priceDto) {
-        return priceService.save(priceDto);
+    public ResponseEntity<?> createPrice(@RequestHeader String token, @RequestParam PriceDto priceDto) {
+        return priceService.save(token, priceDto);
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<?> getAll() {
-        return priceService.getAll();
+    public ResponseEntity<?> getAll(@RequestHeader String token) {
+        return priceService.getAll(token);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updatePrice(@RequestParam PriceDto priceDto) {
-        return priceService.save(priceDto);
+    public ResponseEntity<?> updatePrice(@RequestHeader String token, @RequestParam PriceDto priceDto) {
+        return priceService.save(token, priceDto);
     }
 }

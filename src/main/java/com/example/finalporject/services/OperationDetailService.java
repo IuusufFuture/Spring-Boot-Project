@@ -4,7 +4,7 @@ import com.example.finalporject.models.dto.OperationDetailDto;
 import org.springframework.http.ResponseEntity;
 
 public interface OperationDetailService {
-    ResponseEntity<?> save(OperationDetailDto operationDetailDto);
+    ResponseEntity<?> save(String token, OperationDetailDto operationDetailDto);
 
-    ResponseEntity<?> getAll();
+    ResponseEntity<?> getAll(String token);
 }

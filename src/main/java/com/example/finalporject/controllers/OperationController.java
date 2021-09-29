@@ -15,17 +15,17 @@ public class OperationController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> createOperation(@RequestParam OperationDto operationDto) {
-        return operService.save(operationDto);
+    public ResponseEntity<?> createOperation(@RequestHeader String token, @RequestParam OperationDto operationDto) {
+        return operService.save(token, operationDto);
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<?> getAll() {
-        return operService.getAll();
+    public ResponseEntity<?> getAll(@RequestHeader String token) {
+        return operService.getAll(token);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updateOperation(@RequestParam OperationDto operationDto) {
-        return operService.save(operationDto);
+    public ResponseEntity<?> updateOperation(@RequestHeader String token, @RequestParam OperationDto operationDto) {
+        return operService.save(token, operationDto);
     }
 }

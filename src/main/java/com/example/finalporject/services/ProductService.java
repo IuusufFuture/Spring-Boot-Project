@@ -4,9 +4,11 @@ import com.example.finalporject.models.dto.ProductDto;
 import org.springframework.http.ResponseEntity;
 
 public interface ProductService {
-    ResponseEntity<?> save(ProductDto productDto);
+    ResponseEntity<?> save(String token, ProductDto productDto);
 
-    ResponseEntity<?> getAll();
+    ResponseEntity<?> getAll(String token);
 
-    ResponseEntity<?> delete(Long id, boolean active);
+    ResponseEntity<?> delete(String token, Long id, boolean active);
+
+    ResponseEntity<?> getByProductName(String token, String productName);
 }
