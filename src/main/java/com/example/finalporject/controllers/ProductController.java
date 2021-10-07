@@ -15,7 +15,7 @@ public class ProductController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> createProduct(@RequestHeader String token, @RequestParam ProductDto productDto) {
+    public ResponseEntity<?> createProduct(@RequestHeader String token, @RequestBody ProductDto productDto) {
         return productService.save(token, productDto);
     }
 
@@ -30,7 +30,7 @@ public class ProductController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updateProduct(@RequestHeader String token, @RequestParam ProductDto productDto) {
+    public ResponseEntity<?> updateProduct(@RequestHeader String token, @RequestBody ProductDto productDto) {
         return productService.save(token, productDto);
     }
 

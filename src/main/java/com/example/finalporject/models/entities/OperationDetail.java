@@ -23,7 +23,7 @@ public class OperationDetail {
     @ManyToOne
     @JoinColumn(name = "id_operations")
     Operation operationId;
-    int amount;
-    double price;
+    int quantity;
+    double amount;
 
 }

@@ -15,7 +15,7 @@ public class CategoryController {
     }
 
     @PostMapping("/saveCategory")
-    public ResponseEntity<?> saveCategory(@RequestHeader String token, @RequestParam CategoryDto categoryDto) {
+    public ResponseEntity<?> saveCategory(@RequestHeader String token, @RequestBody CategoryDto categoryDto) {
         return categoryService.saveCategory(token, categoryDto);
     }
 
@@ -30,7 +30,7 @@ public class CategoryController {
     }
 
     @PutMapping("/updateCategory")
-    public ResponseEntity<?> updateCategory(@RequestHeader String token, @RequestParam CategoryDto categoryDto) {
+    public ResponseEntity<?> updateCategory(@RequestHeader String token, @RequestBody CategoryDto categoryDto) {
         return categoryService.saveCategory(token, categoryDto);
     }
 

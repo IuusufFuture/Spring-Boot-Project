@@ -88,4 +88,9 @@ public class ProductServiceImpl implements ProductService {
         }
         return ResponseEntity.ok(ProductMapper.INSTANCE.toProductDto(product));
     }
+
+    @Override
+    public ProductDto getByBarcode(String barcode) {
+        return ProductMapper.INSTANCE.toProductDto(productRepo.findByBarcode(barcode));
+    }
 }

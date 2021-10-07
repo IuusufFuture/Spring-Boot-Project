@@ -16,7 +16,7 @@ public class DiscountController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> createDiscount(@RequestHeader String token, @RequestParam DiscountDto discountDto) {
+    public ResponseEntity<?> createDiscount(@RequestHeader String token, @RequestBody DiscountDto discountDto) {
         return discountService.saveDiscount(token, discountDto);
     }
 
@@ -26,7 +26,13 @@ public class DiscountController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updateDiscount(@RequestHeader String token, @RequestParam DiscountDto discountDto) {
+    public ResponseEntity<?> updateDiscount(@RequestHeader String token, @RequestBody DiscountDto discountDto) {
         return discountService.saveDiscount(token, discountDto);
     }
+
+    @GetMapping("/getByDiscount")
+    public ResponseEntity<?> findDiscount(@RequestHeader String token, @RequestParam Long id) {
+        return discountService.findDiscount(token, id);
+    }
+
 }

@@ -10,6 +10,6 @@ public class OperationDetailDto {
     Long id;
     ProductDto productId;
     OperationDto operationId;
-    int amount;
-    double price;
+    int quantity;
+    double amount;
 }

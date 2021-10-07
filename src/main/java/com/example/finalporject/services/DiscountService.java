@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 
 public interface DiscountService {
     ResponseEntity<?> saveDiscount(String token, DiscountDto discountDto);
-
     ResponseEntity<?> getAll(String token);
+
+    ResponseEntity<?> findDiscount(String token, Long id);
+    double getDiscount(Long id);
 }

@@ -5,6 +5,7 @@ import com.example.finalporject.mappers.PriceMapper;
 import com.example.finalporject.mappers.ProductMapper;
 import com.example.finalporject.models.dto.PriceDto;
 import com.example.finalporject.models.entities.Price;
+import com.example.finalporject.models.entities.User;
 import com.example.finalporject.models.responses.ErrorResponse;
 import com.example.finalporject.services.PriceService;
 import com.example.finalporject.services.UserService;
@@ -22,12 +23,13 @@ public class PriceServiceImpl implements PriceService {
     private PriceRepo priceRepo;
     private UserService userService;
 
-    public PriceServiceImpl(PriceRepo priceRepo) {
+    public PriceServiceImpl(PriceRepo priceRepo, UserService userService) {
         this.priceRepo = priceRepo;
+        this.userService = userService;
     }
 
     @Override
-    public ResponseEntity<?> save(String token, PriceDto priceDto) {
+    public ResponseEntity<?> savePrice(String token, PriceDto priceDto) {
         ResponseEntity<?> responseEntity = userService.verifyUser(token);
         if(!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
             return responseEntity;
@@ -62,5 +64,20 @@ public class PriceServiceImpl implements PriceService {
             return new ResponseEntity<>(new ErrorResponse("Discount not found"), HttpStatus.NOT_FOUND);
         }
         return ResponseEntity.ok(priceList.stream().map(PriceMapper.INSTANCE::toPriceDto).collect(Collectors.toList()));
+    }
+
+    @Override
+    public ResponseEntity<?> findPrice(String token, Long id) {
+        Price price = priceRepo.findPriceByProductIdAndCurrentPriceBetweenSysdate(id);
+        return ResponseEntity.ok(price);
+    }
+
+    @Override
+    public double getPrice(Long id) {
+        Price price = priceRepo.findPriceByProductIdAndCurrentPriceBetweenSysdate(id);
+        if(Objects.isNull(price)) {
+            return 0;
+        }
+        return price.getPrice();
     }
 }

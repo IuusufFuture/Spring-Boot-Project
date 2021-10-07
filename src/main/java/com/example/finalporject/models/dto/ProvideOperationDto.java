@@ -7,9 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CategoryDto {
-    Long id;
-    String name;
-    boolean active;
+public class ProvideOperationDto {
+    String barcode;
+    int count;
 }

@@ -3,7 +3,6 @@ package com.example.finalporject.controllers;
 import com.example.finalporject.models.dto.PriceDto;
 import com.example.finalporject.services.PriceService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,8 +16,8 @@ public class PriceController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> createPrice(@RequestHeader String token, @RequestParam PriceDto priceDto) {
-        return priceService.save(token, priceDto);
+    public ResponseEntity<?> createPrice(@RequestHeader String token, @RequestBody PriceDto priceDto) {
+        return priceService.savePrice(token, priceDto);
     }
 
     @GetMapping("/getAll")
@@ -27,7 +26,12 @@ public class PriceController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updatePrice(@RequestHeader String token, @RequestParam PriceDto priceDto) {
-        return priceService.save(token, priceDto);
+    public ResponseEntity<?> updatePrice(@RequestHeader String token, @RequestBody PriceDto priceDto) {
+        return priceService.savePrice(token, priceDto);
+    }
+
+    @GetMapping("/getByPrice")
+    public ResponseEntity<?> findPrice(@RequestHeader String token, @RequestParam Long id) {
+        return priceService.findPrice(token, id);
     }
 }

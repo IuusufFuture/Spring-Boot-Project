@@ -11,4 +11,6 @@ public interface ProductService {
     ResponseEntity<?> delete(String token, Long id, boolean active);
 
     ResponseEntity<?> getByProductName(String token, String productName);
+
+    ProductDto getByBarcode(String productName);
 }

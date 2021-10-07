@@ -36,7 +36,7 @@ public class CategoryServiceImpl implements CategoryService {
         if(Objects.isNull(categoryRepo.findByName(category.getName()))) {
             category = categoryRepo.save(category);
         } else {
-            return new ResponseEntity<>(new ErrorResponse("Category with that name already exists"), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ErrorResponse("Category with that name already exists"), HttpStatus.OK);
         }
 
         return ResponseEntity.ok(CategoryMapper.INSTANCE.toCategoryDto(category));
