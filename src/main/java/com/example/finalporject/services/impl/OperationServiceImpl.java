@@ -74,6 +74,8 @@ public class OperationServiceImpl implements OperationService {
             operationDetailDtos.add(operationDetail);
 
             ProvideOperationExtraDto theEndStep = new ProvideOperationExtraDto();
+            // new comment
+            // new comment 2
             theEndStep.setCount(each.getCount());
             theEndStep.setBarcode(each.getBarcode());
             theEndStep.setPrice(price);
